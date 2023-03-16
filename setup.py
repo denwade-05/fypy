@@ -82,8 +82,7 @@ setup(
     package_data={
     },
     include_package_data = True, #
-    entry_points={ #如果发布的库包括了命令行工具
-      },
+    entry_points={ }, #如果发布的库包括了命令行工具
     # ext_modules=[mod_expy,],
     package_dir={'fypy': 'fypy'},
     python_requires='>=3.7',
