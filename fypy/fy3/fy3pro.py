@@ -271,7 +271,6 @@ class FY3Block10():
 
         return Dict_DataSets
 
-
 class FY3Orbit() :
     '''针对FY-3卫星数据，包含MERSI 5分钟块、
     MWRI 升降轨、MWHS、MWTS等整圈轨道数据的投影、拼接、裁剪'''

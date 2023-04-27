@@ -1,0 +1,62 @@
+from scipy import interpolate
+def getresp(wavelength, response):
+    # 对卫星中心提供的光谱响应函数解析
+
+    # data = np.loadtxt(filename, dtype=np.float32, skiprows=4)
+    # wavelength = data[:, 0] * 0.001 #
+    # response = data[:, 1]
+    # wavelength = 10000.0 / wavenumber
+
+    flag = response > 0.1
+    wavelength = np.array(wavelength[flag], dtype=np.float32)
+    response = np.array(response[flag], dtype=np.float32)
+
+    minwl = np.ceil(np.nanmin(wavelength) / 0.0025) * 0.0025
+    maxwl = np.floor(np.nanmax(wavelength) / 0.0025) * 0.0025
+
+    fit = interpolate.interp1d(wavelength, response, kind= 'slinear')
+
+    newwl = np.arange(minwl, maxwl+0.0002, 0.0025)
+    minwl = np.nanmin(newwl)
+    maxwl = np.nanmax(newwl)
+    response = fit(newwl)
+
+    return minwl, maxwl, response
+
+if __name__ == '__main__':
+
+    import pandas as pd
+
+    filename = r'D:\thinktanks\docs\高分卫星光谱响应\GF.xlsx'
+    data = pd.read_excel(io=filename, sheet_name=None)
+
+    dict_info = {}
+
+    for key in data :
+        keysplit = key.split('_')
+        satid = keysplit[0]
+        instid = keysplit[1]
+        print(satid, instid)
+
+        SRF = data[key].values
+
+        wl = SRF[:, 0]
+        resp = SRF[:,1:]
+
+        cols, bands = resp.shape
+        if satid not in dict_info :
+            dict_info[satid] = {}
+        if instid not in dict_info[satid] :
+            dict_info[satid][instid] = {}
+
+        for bandid in range(bands) :
+            minwl, maxwl, response = getresp(wl*0.001, resp[:,bandid])
+
+            dict_info[satid][instid]['B%d' %(bandid+1)] = {}
+            dict_info[satid][instid]['B%d' %(bandid+1)]['SRF'] = list(response)
+            dict_info[satid][instid]['B%d' %(bandid+1)]['wl'] = [minwl, maxwl]
+            print(minwl, maxwl)
+
+    from lb_toolkits.tools import writejson
+
+    writejson('./resp/GF/GF.json', dict_info)
