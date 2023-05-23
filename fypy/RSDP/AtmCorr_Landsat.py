@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 '''
-@Project     : lb_toolkits
+@Project     : fypy
 
 @File        : AtmCorr_Landsat.py
 
@@ -21,7 +21,7 @@ import re
 import glob
 from osgeo import gdal
 from Py6S import *
-from AtmCorr import AtmCorr
+from .AtmCorr import AtmCorr
 
 class AtmCorr_Landsat(AtmCorr):
 
@@ -47,9 +47,10 @@ class AtmCorr_Landsat(AtmCorr):
 
         self.metadata = metadata
 
-    def corrBand(self, nowdate, srcfile, outname=None, fillvalue=65535):
+    def FLAASH(self, nowdate, srcfile, BandId=None, outname=None, fillvalue=65535):
 
-        BandId = int((os.path.basename(srcfile).split('.')[0])[-1])
+        if BandId is None :
+            BandId = int((os.path.basename(srcfile).split('.')[0])[-1])
 
         #捕捉打开数据出错异常
         try:
@@ -67,11 +68,11 @@ class AtmCorr_Landsat(AtmCorr):
         prj = IDataSet.GetProjection()
 
         #辐射校正
-        radiance = self.RadiometricCalibration(BandId, ImgRasterData, self.metadata)
+        radiance = self.GetRadiance(BandId, ImgRasterData, self.metadata)
         #大气校正
         corrdata = self.GetAtmCorr(nowdate, BandId, radiance, self.metadata, dem=0)
 
-        print('第%s波段完成大气校正' %BandId)
+        print('第%s波段大气校正完成' %BandId)
 
         return corrdata, trans, prj
 
@@ -153,9 +154,9 @@ class AtmCorr_Landsat(AtmCorr):
 
 
     # 逐波段辐射定标
-    def RadiometricCalibration(self, BandId, data, metadata, fillvalue=65535):
-        ''' DN -> radiance '''
-        #计算辐射亮度参数
+    def GetRadiance(self, BandId, data, metadata, fillvalue=65535):
+        ''' 计算辐射亮度参数：DN -> radiance '''
+
         Gain = float(metadata['RADIANCE_MULT_BAND_%d' %(BandId)])
         Bias = float(metadata['RADIANCE_ADD_BAND_%d' %(BandId)])
 
@@ -163,13 +164,12 @@ class AtmCorr_Landsat(AtmCorr):
 
         return RaCal
 
+    def GetReflectance(self, BandId, data, metadata, fillvalue=65535):
+        ''' 计算反射率：DN -> Reflectance '''
 
-if __name__ == '__main__':
+        Gain = float(metadata['REFLECTANCE_MULT_BAND_%d' %(BandId)])
+        Bias = float(metadata['REFLECTANCE_ADD_BAND_%d' %(BandId)])
 
-    metafile = r'D:\DATA\LandSat\LC81290392021036LGN00\LC08_L1TP_129039_20210205_20210304_01_T1_MTL.txt'
-    mpro = AtmCorr_Landsat(metafile)
-    nowdate = datetime.datetime.strptime('20210205', '%Y%m%d')
-    srcfile = r'D:\DATA\LandSat\LC81290392021036LGN00\LC08_L1TP_129039_20210205_20210304_01_T1_B1.TIF'
-    mpro.corrBand(nowdate, srcfile, outname=None, fillvalue=65535)
+        RaCal = np.where(data>0 ,Gain * data + Bias, fillvalue)
 
-
+        return RaCal

@@ -275,7 +275,7 @@ class FY3Orbit() :
     '''针对FY-3卫星数据，包含MERSI 5分钟块、
     MWRI 升降轨、MWHS、MWTS等整圈轨道数据的投影、拼接、裁剪'''
     def __init__(self, srcdata, srclat, srclon, dstfile=None,
-                 vmin=None, vmax=None, resolution=0.1,
+                 vmin=None, vmax=None, resolution=0.01,
                  minX=None, maxX=None, minY=None, maxY=None,  # 需要投影的区域范围
                  resampleAlg=gdal.GRIORA_NearestNeighbour,
                  srcNodata=-999.0, dstNodata=None, dstSRS="EPSG:4326"):
@@ -305,6 +305,9 @@ class FY3Orbit() :
             srcfile = './tempfile_%s.temp' %(datetime.datetime.utcnow().strftime('%Y%m%d%H%M%S'))
         else:
             srcfile = dstfile
+
+        if dstNodata is None :
+            dstNodata = srcNodata
 
         flag = (srclon > 180) | (srclon < -180) \
              | (srclat > 90)  | (srclat < -90)

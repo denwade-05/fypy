@@ -39,28 +39,6 @@ SINU_WKT = 'PROJCS["Sinusoidal_Sanson_Flamsteed",GEOGCS["GCS_Unknown",' \
            ',UNIT["Meter",1]]'
 
 
-def getResampling(res):
-    """Return the GDAL resampling method
-
-       :param str res: the string of resampling method
-    """
-    if res == 'AVERAGE':
-        return gdal.GRA_Average
-    elif res == 'BILINEAR' or res == 'BICUBIC':
-        return gdal.GRA_Bilinear
-    elif res == 'LANCZOS':
-        return gdal.GRA_Lanczos
-    elif res == 'MODE':
-        return gdal.GRA_Mode
-    elif res == 'NEAREST_NEIGHBOR':
-        return gdal.GRA_NearestNeighbour
-    elif res == 'CUBIC_CONVOLUTION' or res == 'CUBIC':
-        return gdal.GRA_Cubic
-    elif res == 'CUBIC_SPLINE':
-        return gdal.GRA_CubicSpline
-
-
-
 
 class Hdf2TifFor5min():
 
@@ -160,8 +138,6 @@ class Hdf2TifFor5min():
 
         return None
 
-
-
     #  数组保存为tif
     def array2raster(self, outname, GeoTransform, array, fillvalue=-999.0):
         cols = array.shape[1]  # 矩阵列数
@@ -183,10 +159,9 @@ class Hdf2TifFor5min():
             outRaster.GetRasterBand(1).SetNoDataValue(float(fillvalue))
 
 
-
 class ConverModisByGDAL():
 
-    def __init__(self, outname, hdfname, sdsname, resolution=None, outformat="GTiff",
+    def __init__(self, outname, hdfname, sdsname, resolution=None, format="GTiff",
                  epsg=None, wkt=None, resampl='NEAREST_NEIGHBOR', vrt=False):
         """Function for the initialize the object"""
         # Open source dataset
@@ -215,11 +190,11 @@ class ConverModisByGDAL():
         self.maxerror = 0.125
         self.resampling = getResampling(resampl)
 
-        self.driver = gdal.GetDriverByName(outformat)
+        self.driver = gdal.GetDriverByName(format)
         self.vrt = vrt
         if self.driver is None:
             raise Exception('Format driver %s not found, pick a supported '
-                            'driver.' % outformat)
+                            'driver.' % format)
 
         if isinstance(hdfname, list):
             self._MultiFiles(hdfname)
@@ -556,13 +531,35 @@ def modis2tif(outname, filename, sdsname, resolution=None,
     '''
     try:
         mds = ConverModisByGDAL(outname, filename, sdsname, resolution=resolution,
-                                outformat=format, epsg=epsg, wkt=wkt, resampl=resampl )
+                                format=format, epsg=epsg, wkt=wkt, resampl=resampl)
         mds.savetif(outname)
     except BaseException as e :
         print(e)
         return False
 
     return True
+
+
+def getResampling(res):
+    """Return the GDAL resampling method
+
+       :param str res: the string of resampling method
+    """
+    if res == 'AVERAGE':
+        return gdal.GRA_Average
+    elif res == 'BILINEAR' or res == 'BICUBIC':
+        return gdal.GRA_Bilinear
+    elif res == 'LANCZOS':
+        return gdal.GRA_Lanczos
+    elif res == 'MODE':
+        return gdal.GRA_Mode
+    elif res == 'NEAREST_NEIGHBOR':
+        return gdal.GRA_NearestNeighbour
+    elif res == 'CUBIC_CONVOLUTION' or res == 'CUBIC':
+        return gdal.GRA_Cubic
+    elif res == 'CUBIC_SPLINE':
+        return gdal.GRA_CubicSpline
+
 
 
 

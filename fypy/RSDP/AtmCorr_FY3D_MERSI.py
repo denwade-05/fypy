@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 '''
-@Project     : lb_toolkits
+@Project     : fypy
 
 @File        : AtmCorr_FY3D_MERSI.py
 
@@ -17,33 +17,84 @@ import os
 import sys
 import numpy as np
 import datetime
-from .AtmCorr import AtmCorr
-from lb_toolkits.tools import readhdf, readhdf_fileinfo, writehdf
+import json
+from .AtmCorr import AtmCorr, reflectance2radiance
+from fypy.tools import readhdf, readhdf_fileinfo, writehdf
 from scipy import interpolate
 
 
-CurrDir = os.path.dirname(os.path.realpath(__file__))
+EXEPATH = os.path.split(os.path.realpath(__file__))[0]
+
 
 class AtmCorr_FY3D_MERSI(AtmCorr):
 
-    def __init__(self, l1file=None, geofile=None, nowdate=None):
+    def __init__(self):
 
         super(AtmCorr_FY3D_MERSI, self).__init__()
 
+    def FLAASH(self, nowdate, srcdata, lat, lon,
+                     suna, sunz, sata, satz,
+                     SatID, InstID, BandId, fillvalue=65535):
 
-    def corrband(self, data, nowdate, respfile, sunz, suna, satz, sata):
+        # 表观反射率转换为辐射亮度值
+        CalCoeffFile = os.path.join(EXEPATH, "resp", "FY",
+                                    "CalibrationCoefficient.json")
+        if not os.path.isfile(CalCoeffFile) :
+            raise Exception('风云卫星定标系数文件不存在【%s】' %(CalCoeffFile))
+        CalCoeff = json.load(open(CalCoeffFile))
 
-        minwl, maxwl, response = self.getresp(respfile)
+        satid = SatID.replace('-', '')
+        instid = InstID.replace('-', '')
 
-        self.set_geom(nowdate, sunz=sunz, suna=suna, satz=satz, sata=sata)
-        self.set_atm(sLatitude=18.0, nowdate=nowdate)
+        if not satid in CalCoeff :
+            raise Exception('请确认【%s】是否在定标系数列表，当前仅支持' %(SatID), CalCoeff.keys())
+
+        if not instid in CalCoeff[satid] :
+            raise Exception('请确认【%s】是否在定标系数列表，当前仅支持' %(InstID), CalCoeff[satid].keys())
+
+
+        Esun = CalCoeff[SatID][InstID]['ESUN'][BandId-1]
+        radiance = reflectance2radiance(srcdata, Esun, sunz, nowdate)
+
+        # 模型参数设置
+        self.setParam(nowdate, np.nanmean(lat), np.nanmean(sunz), np.nanmean(suna),
+                      SatID, InstID, BandId, dem=0.010)
+        Coeffa, Coeffb, Coeffc  = self.corrCoeff()
+
+        #大气校正
+        corrdata = self.corrImage(radiance, Coeffa, Coeffb, Coeffc)
+
+        print('第%s波段大气校正完成' %BandId)
+
+        return corrdata
+
+    def setParam(self, nowdate, lat, sunz, suna, SatID, InstID, BandId, dem=0.010):
+        '''
+
+        :param nowdate:
+        :param BandId:
+        :param radiance:
+        :param metadata:
+        :param dem:
+        :return:
+        '''
+
+        self.set_geom(nowdate, sunz=sunz, suna=suna, satz=0, sata=0)
+        self.set_atm(sLatitude=lat, nowdate=nowdate)
         self.set_aer()
         self.set_vis()
-        self.set_altitude(dem=0.010)
-        self.set_resp(minwl, maxwl, response)
-        corrdata = self.corrCoeff(data)
+        self.set_altitude(dem=dem)
 
-        return np.array(corrdata)
+        #读取辐射校正和大气校正所需参数:增益、偏移和光谱响应函数
+        SRFFile = os.path.join(EXEPATH, 'resp', 'FY', "FY.json")
+        if not os.path.isfile(SRFFile) :
+            raise Exception('风云卫星光谱响应文件不存在【%s】' %(SRFFile))
+        SRF = json.load(open(SRFFile))
+
+        minwl = SRF[SatID][InstID]['B%d' %(BandId)]['wl'][0]
+        maxwl = SRF[SatID][InstID]['B%d' %(BandId)]['wl'][1]
+        response = SRF[SatID][InstID]['B%d' %(BandId)]['SRF']
+        self.set_resp(minwl, maxwl, response)
 
 
     def Calibration(self, filename, sdsname):

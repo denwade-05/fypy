@@ -1,6 +1,6 @@
 # -*- coding:utf-8 -*-
 '''
-@Project     : lb_toolkits
+@Project     : fypy
 
 @File        : AtmCorr.py
 
@@ -205,13 +205,37 @@ def CalDES(nowdate) :
     diy = 365
 
     X = 2 * np.pi * (doy-1) / diy
-    temp=1.000109 + 0.033494 * np.cos(X) + 0.001472 * np.sin(X)\
+    temp = 1.000109 + 0.033494 * np.cos(X) + 0.001472 * np.sin(X)\
          + 0.000768 * np.cos(2*X) + 0.000079 * np.sin(2*X)
 
     return 1.0/temp
 
-def calref(dn, d, Esun, sunz):
+def radiance2reflectance(rad, Esun, sunz, nowdate):
+    '''
+    将radiance转换为reflectance
+    :param rad: 卫星载荷通道入瞳处等效辐射亮度
+    :param Esun: 太阳辐照度
+    :param sunz: 太阳天顶角, degree
+    :param nowdate: datetime, 当前日期
+    :return:
+    '''
 
-    return (np.pi * dn * d**2) / (Esun * np.sin(90-sunz))
+    des = CalDES(nowdate)      # 日地距离，天体单位
+
+    return (np.pi * rad * des**2) / (Esun * np.cos((90-sunz)/180*np.pi))
+
+def reflectance2radiance(ref, Esun, sunz, nowdate):
+    '''
+    将radiance转换为reflectance
+    :param ref: 卫星载荷通道入瞳处等效辐射亮度
+    :param Esun: 太阳辐照度
+    :param sunz: 太阳天顶角, degree
+    :param nowdate: datetime, 当前日期
+    :return:
+    '''
+
+    des = CalDES(nowdate)      # 日地距离，天体单位
+
+    return  (ref * Esun * np.cos((90-sunz)/180*np.pi)) / (np.pi * des**2)
 
 
