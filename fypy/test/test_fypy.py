@@ -47,8 +47,34 @@ def test_h8():
 
     hsd2hdf(outdir, hsdpath, nowdate, SatID='H09')
 
+def test_fy3():
+    from fypy.fy3 import FY3Orbit, fy3pro
+    from fypy.tools import readhdf
+
+    l1file = r'D:\DATA\FY3D\MERSI\FY3D_MERSI_GBAL_L1_20220718_0725_1000M_MS.HDF'
+    geofile = r'D:\DATA\FY3D\MERSI\FY3D_MERSI_GBAL_L1_20220718_0725_GEO1K_MS.HDF'
+
+    mpro = fy3pro()
+    band14 = mpro.Calibration(l1file, '/Data/EV_250_Aggr.1KM_RefSB')
+    band519 = mpro.Calibration(l1file, '/Data/EV_1KM_RefSB')
+    # band2023 = mpro.Calibration(l1file, '/Data/EV_1KM_Emissive')
+    # band2425 = mpro.Calibration(l1file, '/Data/EV_250_Aggr.1KM_Emissive')
+
+    # data = []
+    # data.append(band14)
+    # data.append(band519)
+    from osgeo import gdal
+    data = band14
+    # data = np.vstack((band14, band519))
+    # data = np.array(data, dtype=np.uint8)
+    # data = readhdf(l1file, '/Data/EV_1KM_RefSB')
+    lat = readhdf(geofile, '/Geolocation/Latitude')
+    lon = readhdf(geofile, '/Geolocation/Longitude')
+    mpro = FY3Orbit(data, lat, lon, dstfile=r'D:\DATA\FY3D\MERSI\test100-1.tif',
+                    resolution=0.0025, vmin=0, vmax=10000, resampleAlg=gdal.GRIORA_Bilinear)
+
 if __name__ == '__main__':
 
     # test_fy4()
 
-    test_h8()
+    test_fy3()

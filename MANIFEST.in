@@ -3,6 +3,6 @@ include MANIFEST.in
 include README.md
 
 recursive-include fypy/ *.py
-recursive-include fypy/docs *
-recursive-include fypy/fypy *
+recursive-include fypy/calc *
+recursive-include fypy/RSDP *.json
 

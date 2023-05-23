@@ -29,7 +29,7 @@ fy4pro
 fy4psearchtable
 -----------------------------------------
 
-.. automodule:: fypy.fy4.fy4psearchtable
+.. automodule:: fypy.fy4.fy4searchtable
     :members:
     :undoc-members:
     :show-inheritance:
