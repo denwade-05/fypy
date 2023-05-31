@@ -90,7 +90,7 @@ class fy4pro(object) :
 
         return data_GLL
 
-    def getL1Data(self, filename, bandID=1):
+    def getL1Data(self, filename, bandID=1, fillvalue=65535):
         '''
         读取FY4 L1数据，并完成辐射定标
         Parameters
@@ -118,16 +118,19 @@ class fy4pro(object) :
         Begin_Pixel_Number = fileinfo['Begin Pixel Number'][0]
         End_Pixel_Number = fileinfo['End Pixel Number'][0]
 
-        data = np.zeros(shape=(End_Line_Number+1, End_Pixel_Number+1),dtype=np.float32)
+        # data = np.zeros(shape=(End_Line_Number+1, End_Pixel_Number+1),dtype=np.float32)
 
         fp = h5py.File(filename, 'r')
         cal = fp['CALChannel%02d' %(bandID)][:]
         dn = fp['NOMChannel%02d' %(bandID)][:]
         fp.close()
 
-        dn[dn>=len(cal)] = 0
+        flag = dn>=len(cal)
+        dn[flag] = 0
 
-        data[Begin_Line_Number:End_Line_Number+1, Begin_Pixel_Number:End_Pixel_Number+1] = cal[dn]
+        data = cal[dn]
+        data[flag] = fillvalue
+        # data[Begin_Line_Number:End_Line_Number+1, Begin_Pixel_Number:End_Pixel_Number+1] = cal[dn]
 
         return data
 
@@ -145,11 +148,11 @@ class fy4pro(object) :
         Begin_Pixel_Number = fileinfo['Begin Pixel Number'][0]
         End_Pixel_Number = fileinfo['End Pixel Number'][0]
 
-        data = np.zeros(shape=(End_Line_Number+1, End_Pixel_Number+1),dtype=np.float32)
+        # data = np.zeros(shape=(End_Line_Number+1, End_Pixel_Number+1),dtype=np.float32)
+        #
+        # data[Begin_Line_Number:End_Line_Number+1, Begin_Pixel_Number:End_Pixel_Number+1] = data1
 
-        data[Begin_Line_Number:End_Line_Number+1, Begin_Pixel_Number:End_Pixel_Number+1] = data1
-
-        return data
+        return data1
 
     def _gettype(self, datatype):
         ''' 根据numpy的数据类型，匹配GDAL中的数据类型 '''

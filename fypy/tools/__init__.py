@@ -16,6 +16,5 @@ from .hdfpro import *
 from .ncpro import *
 from .tifpro import *
 from .jsonpro import *
-from .gifpro import *
 
 from .nc2tif import nc2tif

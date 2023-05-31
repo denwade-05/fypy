@@ -31,6 +31,7 @@ class AtmCorr_FY3D_MERSI(AtmCorr):
     def __init__(self):
 
         super(AtmCorr_FY3D_MERSI, self).__init__()
+        raise Exception('暂不支持FY3D MERSI的大气校正')
 
     def FLAASH(self, nowdate, srcdata, lat, lon,
                      suna, sunz, sata, satz,

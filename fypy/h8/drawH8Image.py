@@ -42,7 +42,7 @@ def drawH8TrueColor(outname, vis006, vis005, vis004):
     rgbArray[..., 3] = 255
 
     img = Image.fromarray(rgbArray.astype(np.uint8))
-    img.save(outname, quality=95)
+    img.save(outname, quality=90)
 
 
     # im = Image.merge('RGB', (Image.fromarray(np.array(r, dtype=np.uint8), "L"),

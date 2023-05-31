@@ -14,5 +14,5 @@
 
 '''
 from .drawH8Image import drawH8TrueColor
-from .ahi8_l1_pro import ahi8_l1_pro
+from .ahi8_l1_pro import ahi8_l1_pro, hsd2hdf
 from .ahi8searchtable import ahi8searchtable
