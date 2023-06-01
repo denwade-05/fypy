@@ -122,6 +122,7 @@ class fy3pro(object) :
 
         return bt
 
+
 class FY3Block10():
 
     def __init__(self, SatID, InstID, productName, filelist, sdsname, resolution, outname=None):
@@ -371,7 +372,7 @@ class FY3Orbit() :
                             creationOptions=["COMPRESS=LZW"])
 
         if geoData == None:
-            print('deal failure!')
+            print('处理失败')
             return None
 
         width = geoData.RasterXSize #栅格矩阵的列数
@@ -382,7 +383,8 @@ class FY3Orbit() :
         im_geotrans = geoData.GetGeoTransform()#获取仿射矩阵信息
         im_proj = geoData.GetProjection()#获取投影信息
 
-        print('{} finish Geo\n'.format(srcfile))
+        if dstfile is not None :
+            print('完成投影转换{}\n'.format(srcfile))
 
         if vmax is not None and vmin is not None :
             im_data[(im_data < vmin) | (im_data > vmax)] = dstNodata
@@ -394,7 +396,7 @@ class FY3Orbit() :
         # 获取sdsname所在的图层栅格索引
         src_raster = self.GetLayer(layers, sdsname)
         if src_raster is None :
-            raise Exception('dataset[%s] is not in the %s' %(sdsname, filename))
+            raise Exception('数据集【%s】不在文件中【%s】' %(sdsname, filename))
 
         return src_raster
 

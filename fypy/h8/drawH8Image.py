@@ -20,12 +20,29 @@ import datetime
 from PIL import Image
 
 
-def drawH8TrueColor(outname, vis006, vis005, vis004):
+def drawH8TrueColor(outname, vis650, vis550, vis450):
+    '''
+    绘制葵花数据真彩图
+    
+    Parameters
+    ----------
+    outname : string
+        输出文件名，PNG或者JPG
+    vis650 : numpy.array-2D
+        650um通道的反射率，范围在0-1
+    vis550 : numpy.array-2D
+        550um通道的反射率，范围在0-1
+    vis450 : numpy.array-2D
+        450um通道的反射率，范围在0-1
 
+    Returns
+    -------
 
-    r = vis006 * 255
-    g = vis005 * 255
-    b = vis004 * 255
+    '''
+
+    r = vis650 * 255
+    g = vis550 * 255
+    b = vis450 * 255
 
     r[r<0] = 0
     g[g<0] = 0

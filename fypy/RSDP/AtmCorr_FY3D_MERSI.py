@@ -34,9 +34,30 @@ class AtmCorr_FY3D_MERSI(AtmCorr):
         raise Exception('暂不支持FY3D MERSI的大气校正')
 
     def FLAASH(self, nowdate, srcdata, lat, lon,
-                     suna, sunz, sata, satz,
+                     suna, sunz, sata, satz, dem,
                      SatID, InstID, BandId, fillvalue=65535):
+        '''
+        基于Py6S进行大气校正
+        Parameters
+        ----------
+        nowdate
+        srcdata
+        lat
+        lon
+        suna
+        sunz
+        sata
+        satz
+        dem
+        SatID
+        InstID
+        BandId
+        fillvalue
 
+        Returns
+        -------
+
+        '''
         # 表观反射率转换为辐射亮度值
         CalCoeffFile = os.path.join(EXEPATH, "resp", "FY",
                                     "CalibrationCoefficient.json")
@@ -59,7 +80,7 @@ class AtmCorr_FY3D_MERSI(AtmCorr):
 
         # 模型参数设置
         self.setParam(nowdate, np.nanmean(lat), np.nanmean(sunz), np.nanmean(suna),
-                      SatID, InstID, BandId, dem=0.010)
+                      SatID, InstID, BandId, dem=dem)
         Coeffa, Coeffb, Coeffc  = self.corrCoeff()
 
         #大气校正
